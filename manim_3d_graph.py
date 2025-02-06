@@ -72,21 +72,21 @@ class Graph3DVisualization(ThreeDScene):
 
 class SineWaveVisualization(Scene):
     def construct(self):
-        axes = Axes(
+        axes = Axes( # Define graph parameters
             x_range=[-PI, PI, PI/4],
             y_range=[-1.5, 1.5, 0.5],
             axis_config={"color": BLUE}
         )
+
+        labels = axes.get_axis_labels(x_label="x", y_label="sin(x)")
         
-        time_tracker = ValueTracker(0)
+        time_tracker = ValueTracker(0) # needed to show function movement
         
         moving_sine_wave = always_redraw(lambda: FunctionGraph(
             lambda x: np.sin(x - time_tracker.get_value()),
             color=YELLOW,
             x_range=[-PI, PI]
         ))
-        
-        labels = axes.get_axis_labels(x_label="x", y_label="sin(x)")
         
         self.add(axes, labels, moving_sine_wave)
         self.play(time_tracker.animate.set_value(2 * PI), run_time=4, rate_func=linear)
