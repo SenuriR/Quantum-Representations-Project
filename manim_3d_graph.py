@@ -1,113 +1,129 @@
 from manim import *
 import numpy as np
+import sys
+from typing import List
 
 class Graph3DVisualization(ThreeDScene):
-    def construct(self):
-        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.num_graphs = 3
+        self.num_nodes = [3, 4, 5]
+        self.radius = 2.5  # Adjusted for better fit
+        self.graph_spacing = 6  # Adjusted spacing
+        self.graph_centers = []
+        self.graph_vgroups = []
+        self.node_positions = {}
+        self.connection_lines = []
+    
+    def create_graphs(self):
+        self.graph_centers = []
+        self.graph_vgroups = []
+        self.node_positions = {}
+        all_graphs = []
         
-        num_nodes = 6  # Change this value to set the number of nodes
-        radius = 3  # Radius of the circular arrangement of nodes
+        for g in range(self.num_graphs):
+            center_position = np.array([g * self.graph_spacing, 0, 0])
+            self.graph_centers.append(center_position)
+            
+            node_positions = {
+                f"G{g}_N{i}": center_position + np.array([
+                    self.radius * np.cos(2 * np.pi * i / self.num_nodes[g]),
+                    self.radius * np.sin(2 * np.pi * i / self.num_nodes[g]),
+                    0  # Keep all graphs in the same plane
+                ]) for i in range(self.num_nodes[g])
+            }
+            self.node_positions.update(node_positions)
+            
+            nodes = {name: Sphere(radius=0.2).move_to(pos) for name, pos in node_positions.items()}
+            edges = [
+                DashedLine(node_positions[f"G{g}_N{i}"], node_positions[f"G{g}_N{(i+1) % self.num_nodes[g]}"], stroke_width=2) 
+                for i in range(self.num_nodes[g])
+            ]
+            
+            graph_group = VGroup(*nodes.values(), *edges)
+            all_graphs.append(graph_group)
+            self.graph_vgroups.append(graph_group)
         
-        # Generate evenly spaced node positions in 3D space
-        node_positions = {
-            f"N{i}": np.array([
-                radius * np.cos(2 * np.pi * i / num_nodes),
-                radius * np.sin(2 * np.pi * i / num_nodes),
-                np.sin(2 * np.pi * i / num_nodes)
-            ]) for i in range(num_nodes)
-        }
-        
-        # Create nodes (spheres)
-        nodes = {name: Sphere(radius=0.2).move_to(pos) for name, pos in node_positions.items()}
-        
-        # Create edges to form a cycle graph
-        edges = [
-            Line(node_positions[f"N{i}"], node_positions[f"N{(i+1) % num_nodes}"]) for i in range(num_nodes)
+        self.connection_lines = [
+            Line(self.graph_centers[i], self.graph_centers[i+1], color=WHITE, stroke_width=3) 
+            for i in range(self.num_graphs - 1)
         ]
         
-        graph_group = VGroup(*nodes.values(), *edges)
+        self.add(*all_graphs, *self.connection_lines)
+    
+    def show_all_graphs(self):
+        """Set camera to a high-angle view to see all graphs."""
+        self.move_camera(phi=75 * DEGREES, theta=30 * DEGREES, zoom=1, frame_center=np.mean(self.graph_centers, axis=0), run_time=2)
+        self.wait(2)
+    
+    def inspect_node(self, graph_num: int, node_num: int):
+        focus_node = f"G{graph_num}_N{node_num}"
+        if focus_node not in self.node_positions:
+            return
         
-        # Add nodes and edges to scene
-        self.add(graph_group)
-        
-        # Camera movements
-        self.wait(1)
-        self.move_camera(phi=90 * DEGREES, theta=0 * DEGREES, run_time=2)  # Bird's eye view
-        self.wait(1)
-        self.move_camera(phi=60 * DEGREES, theta=45 * DEGREES, run_time=2)  # High angle view
-        self.wait(1)
-        self.move_camera(phi=0 * DEGREES, theta=30 * DEGREES, run_time=2)  # Eye level view
-        self.wait(1)
-        
-        # Zoom into a specific node (e.g., node "N0") and set correct Bloch Sphere perspective
-        focus_node = "N0"
-        self.move_camera(frame_center=node_positions[focus_node], zoom=2, phi=0 * DEGREES, theta=0 * DEGREES, run_time=2)
+        self.move_camera(frame_center=self.node_positions[focus_node], zoom=2, run_time=2)
         self.wait(1)
         
-        # Make the entire graph disappear
-        self.play(FadeOut(graph_group))
-        
-        # Display Bloch Sphere at the position of the node
-        bloch_sphere = BlochSphere().move_to(node_positions[focus_node])
+        self.play(FadeOut(*self.graph_vgroups, *self.connection_lines))
+        bloch_sphere = BlochSphere().move_to(self.node_positions[focus_node])
         self.play(FadeIn(bloch_sphere))
         self.wait(2)
         
-        # Remove Bloch Sphere
         self.play(FadeOut(bloch_sphere))
+        self.play(FadeIn(*self.graph_vgroups, *self.connection_lines))
+        self.show_all_graphs()
+    
+    def delete_node(self, graph_num: int, node_num: int):
+        focus_node = f"G{graph_num}_N{node_num}"
+        if focus_node in self.node_positions:
+            node_mobject = next((m for m in self.graph_vgroups[graph_num].submobjects if isinstance(m, Sphere) and np.allclose(m.get_center(), self.node_positions[focus_node])), None)
+            if node_mobject:
+                self.play(FadeOut(node_mobject))
+            del self.node_positions[focus_node]
+            self.num_nodes[graph_num] -= 1  # Update node count dynamically
         
-        # Make the original graph reappear
-        self.play(FadeIn(graph_group))
-        self.wait(1)
+        self.clear()  # Remove existing elements
+        self.create_graphs()  # Re-create graphs reflecting the deletion
+        self.show_all_graphs()  # Ensure the updated visualization is visible
+
+    def construct(self):
+        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
+        self.create_graphs()
+        self.wait(2)
         
-        # Zoom out to original view
-        self.move_camera(phi=75 * DEGREES, theta=30 * DEGREES, zoom=1, run_time=2)
+        # Show all graphs
+        self.show_all_graphs()
+        
+        # Inspect a node
+        self.inspect_node(graph_num=0, node_num=1)
+        self.wait(2)
+
+        # Show all graphs
+        self.show_all_graphs()
+        
+        # Delete a node and update the visualization
+        self.delete_node(graph_num=1, node_num=2)
         self.wait(2)
 
 class BlochSphere(VGroup):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        # Create Bloch Sphere
         sphere = Sphere(radius=1, color=BLUE)
-        sphere.set_opacity(0.5)  # Set opacity separately
+        sphere.set_opacity(0.5)
         
-        # Axes
         x_axis = Arrow3D(start=[-1.5, 0, 0], end=[1.5, 0, 0], color=RED)
         y_axis = Arrow3D(start=[0, -1.5, 0], end=[0, 1.5, 0], color=GREEN)
         z_axis = Arrow3D(start=[0, 0, -1.5], end=[0, 0, 1.5], color=WHITE)
         
-        # Labels aligned with Bloch Sphere perspective
         x_label = Tex("X").next_to(x_axis.get_end(), RIGHT)
         y_label = Tex("Y").next_to(y_axis.get_end(), UP)
         z_label = Tex("Z").next_to(z_axis.get_end(), OUT)
         
-        # Rotate entire Bloch Sphere to match reference perspective
-        self.rotate(PI / 2, axis=Y_AXIS)
-        
-        # Qubit State Vector
         state_vector = Arrow3D(start=[0, 0, 0], end=[0.7, 0.5, 0.5], color=YELLOW)
         
-        # Add elements to VGroup
         self.add(sphere, x_axis, y_axis, z_axis, x_label, y_label, z_label, state_vector)
 
-class SineWaveVisualization(Scene):
-    def construct(self):
-        axes = Axes(
-            x_range=[-PI, PI, PI/4],
-            y_range=[-1.5, 1.5, 0.5],
-            axis_config={"color": BLUE}
-        )
-        
-        time_tracker = ValueTracker(0)
-        
-        moving_sine_wave = always_redraw(lambda: FunctionGraph(
-            lambda x: np.sin(x - time_tracker.get_value()),
-            color=YELLOW,
-            x_range=[-PI, PI]
-        ))
-        
-        labels = axes.get_axis_labels(x_label="x", y_label="sin(x)")
-        
-        self.add(axes, labels, moving_sine_wave)
-        self.play(time_tracker.animate.set_value(2 * PI), run_time=4, rate_func=linear)
-        self.wait(3)
+if __name__ == "__main__":
+    scene = Graph3DVisualization()
+    scene.render()
