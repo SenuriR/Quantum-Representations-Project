@@ -4,16 +4,17 @@ import sys
 from typing import List
 
 class Graph3DVisualization(ThreeDScene):
-    def __init__(self, **kwargs):
+    def __init__(self, num_graphs=3, num_nodes=None, **kwargs):
         super().__init__(**kwargs)
-        self.num_graphs = 3
-        self.num_nodes = [3, 4, 5]
-        self.radius = 2.5  # Adjusted for better fit
-        self.graph_spacing = 6  # Adjusted spacing
+        self.num_graphs = num_graphs
+        self.num_nodes = num_nodes if num_nodes else [3] * num_graphs
+        self.radius = 2.5  # Base radius
+        self.graph_spacing = max(6, 2 * self.radius)  # Dynamically adjust spacing
         self.graph_centers = []
         self.graph_vgroups = []
         self.node_positions = {}
         self.connection_lines = []
+        self.scaling_factor = 10 / (self.num_graphs * self.graph_spacing)  # Dynamic scaling
     
     def create_graphs(self):
         self.graph_centers = []
@@ -22,7 +23,7 @@ class Graph3DVisualization(ThreeDScene):
         all_graphs = []
         
         for g in range(self.num_graphs):
-            center_position = np.array([g * self.graph_spacing, 0, 0])
+            center_position = np.array([(g - (self.num_graphs - 1) / 2) * self.graph_spacing, 0, 0])
             self.graph_centers.append(center_position)
             
             node_positions = {
@@ -49,17 +50,26 @@ class Graph3DVisualization(ThreeDScene):
             for i in range(self.num_graphs - 1)
         ]
         
-        self.add(*all_graphs, *self.connection_lines)
+        all_graphs_group = VGroup(*all_graphs, *self.connection_lines)
+        all_graphs_group.scale(self.scaling_factor)  # Apply dynamic scaling
+        self.add(all_graphs_group)
     
     def show_all_graphs(self):
         """Set camera to a high-angle view to see all graphs."""
-        self.move_camera(phi=75 * DEGREES, theta=30 * DEGREES, zoom=1, frame_center=np.mean(self.graph_centers, axis=0), run_time=2)
-        self.wait(2)
+        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES, frame_center=np.array([0, 0, 0]))
+    
+    def center_camera_on(self, graph_num: int):
+        """Centers the camera on the specified graph."""
+        if 0 <= graph_num < len(self.graph_centers):
+            self.move_camera(frame_center=self.graph_centers[graph_num], zoom=1.2, run_time=2)
     
     def inspect_node(self, graph_num: int, node_num: int):
         focus_node = f"G{graph_num}_N{node_num}"
         if focus_node not in self.node_positions:
             return
+        
+        self.center_camera_on(graph_num)  # Ensure camera is centered on the graph
+        self.wait(1)
         
         self.move_camera(frame_center=self.node_positions[focus_node], zoom=2, run_time=2)
         self.wait(1)
@@ -67,7 +77,7 @@ class Graph3DVisualization(ThreeDScene):
         self.play(FadeOut(*self.graph_vgroups, *self.connection_lines))
         bloch_sphere = BlochSphere().move_to(self.node_positions[focus_node])
         self.play(FadeIn(bloch_sphere))
-        self.wait(2)
+        self.wait(1)
         
         self.play(FadeOut(bloch_sphere))
         self.play(FadeIn(*self.graph_vgroups, *self.connection_lines))
@@ -87,23 +97,21 @@ class Graph3DVisualization(ThreeDScene):
         self.show_all_graphs()  # Ensure the updated visualization is visible
 
     def construct(self):
-        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
         self.create_graphs()
-        self.wait(2)
-        
-        # Show all graphs
         self.show_all_graphs()
+        self.wait(1)
         
         # Inspect a node
         self.inspect_node(graph_num=0, node_num=1)
-        self.wait(2)
-
-        # Show all graphs
-        self.show_all_graphs()
+        self.wait(1)
+        
+        # Center camera on graph 1
+        self.center_camera_on(graph_num=1)
+        self.wait(1)
         
         # Delete a node and update the visualization
         self.delete_node(graph_num=1, node_num=2)
-        self.wait(2)
+        self.wait(1)
 
 class BlochSphere(VGroup):
     def __init__(self, **kwargs):
@@ -125,5 +133,5 @@ class BlochSphere(VGroup):
         self.add(sphere, x_axis, y_axis, z_axis, x_label, y_label, z_label, state_vector)
 
 if __name__ == "__main__":
-    scene = Graph3DVisualization()
+    scene = Graph3DVisualization(num_graphs=4, num_nodes=[5, 6, 4, 7])
     scene.render()
