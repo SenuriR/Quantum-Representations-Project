@@ -15,6 +15,23 @@ class Graph3DVisualization(ThreeDScene):
         self.node_positions = {}
         self.connection_lines = []
         self.scaling_factor = 10 / (self.num_graphs * self.graph_spacing)  # Dynamic scaling
+
+    def construct(self):
+        self.create_graphs()
+        self.show_all_graphs(run_time=2)
+        self.wait(1)
+        
+        # Inspect a node
+        self.inspect_node(graph_num=0, node_num=1)
+        self.wait(1)
+        
+        # Center camera on graph 1
+        self.center_camera_on_graph(graph_num=1)
+        self.wait(1)
+        
+        # Delete a node and update the visualization
+        self.delete_node(graph_num=1, node_num=2)
+        self.wait(1)
     
     def create_graphs(self):
         self.graph_centers = []
@@ -54,35 +71,40 @@ class Graph3DVisualization(ThreeDScene):
         all_graphs_group.scale(self.scaling_factor)  # Apply dynamic scaling
         self.add(all_graphs_group)
     
-    def show_all_graphs(self):
+    def show_all_graphs(self, run_time=2):
         """Set camera to a high-angle view to see all graphs."""
-        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES, frame_center=np.array([0, 0, 0]))
+        self.move_camera(phi=75 * DEGREES, theta=30 * DEGREES, frame_center=np.array([0, 0, 0]), run_time=run_time)
     
-    def center_camera_on(self, graph_num: int):
+    def center_camera_on_graph(self, graph_num: int):
         """Centers the camera on the specified graph."""
         if 0 <= graph_num < len(self.graph_centers):
             self.move_camera(frame_center=self.graph_centers[graph_num], zoom=1.2, run_time=2)
+    
+    def center_camera_on_node(self, graph_num: int, node_num: int):
+        """Centers the camera on the specified node of a graph."""
+        focus_node = f"G{graph_num}_N{node_num}"
+        if focus_node in self.node_positions:
+            self.move_camera(frame_center=self.node_positions[focus_node], zoom=1.5, run_time=2)
     
     def inspect_node(self, graph_num: int, node_num: int):
         focus_node = f"G{graph_num}_N{node_num}"
         if focus_node not in self.node_positions:
             return
         
-        self.center_camera_on(graph_num)  # Ensure camera is centered on the graph
-        self.wait(1)
-        
-        self.move_camera(frame_center=self.node_positions[focus_node], zoom=2, run_time=2)
+        self.center_camera_on_graph(graph_num)  # Ensure camera is centered on the graph
         self.wait(1)
         
         self.play(FadeOut(*self.graph_vgroups, *self.connection_lines))
         bloch_sphere = BlochSphere().move_to(self.node_positions[focus_node])
+        self.move_camera(frame_center=self.node_positions[focus_node], zoom=2, run_time=2)
         self.play(FadeIn(bloch_sphere))
         self.wait(1)
         
         self.play(FadeOut(bloch_sphere))
+        self.center_camera_on_graph(graph_num)
         self.play(FadeIn(*self.graph_vgroups, *self.connection_lines))
         self.show_all_graphs()
-    
+
     def delete_node(self, graph_num: int, node_num: int):
         focus_node = f"G{graph_num}_N{node_num}"
         if focus_node in self.node_positions:
@@ -95,23 +117,6 @@ class Graph3DVisualization(ThreeDScene):
         self.clear()  # Remove existing elements
         self.create_graphs()  # Re-create graphs reflecting the deletion
         self.show_all_graphs()  # Ensure the updated visualization is visible
-
-    def construct(self):
-        self.create_graphs()
-        self.show_all_graphs()
-        self.wait(1)
-        
-        # Inspect a node
-        self.inspect_node(graph_num=0, node_num=1)
-        self.wait(1)
-        
-        # Center camera on graph 1
-        self.center_camera_on(graph_num=1)
-        self.wait(1)
-        
-        # Delete a node and update the visualization
-        self.delete_node(graph_num=1, node_num=2)
-        self.wait(1)
 
 class BlochSphere(VGroup):
     def __init__(self, **kwargs):
