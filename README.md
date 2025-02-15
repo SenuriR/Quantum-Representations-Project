@@ -17,3 +17,4 @@ To use this script:
 
 This script serves as a foundation for more advanced graph visualizations and can be adapted for various applications, including network analysis and quantum computing simulations.
 
+Also find manim_circuit.py and matrix_transformations.py for further operations in quantum theory visualized through manim. Updated code will be uploaded by 2/12.
