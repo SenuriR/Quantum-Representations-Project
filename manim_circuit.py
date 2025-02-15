@@ -17,8 +17,8 @@ class QuantumCircuitVisualization(Scene):
         
         # Load and display the quantum circuit image in Manim
         circuit_diagram = ImageMobject("quantum_circuit.png")
-        circuit_diagram.scale(1.5)
-        circuit_diagram.to_edge(UP+3)
+        circuit_diagram.scale(1.2)
+        circuit_diagram.to_edge(DOWN).shift(UP * 0.5)
         self.play(FadeIn(circuit_diagram))
         self.wait(2)
         
@@ -31,8 +31,8 @@ class QuantumCircuitVisualization(Scene):
         
         # Add qubit labels
         qubit_labels = VGroup(
-            Tex("$|q_0\rangle$").next_to(qubit_lines[0], LEFT),
-            Tex("$|q_1\rangle$").next_to(qubit_lines[1], LEFT)
+            Tex("$q_0$").next_to(qubit_lines[0], LEFT),
+            Tex("$q_1$").next_to(qubit_lines[1], LEFT)
         )
         self.play(Write(qubit_labels))
         self.wait(1)
