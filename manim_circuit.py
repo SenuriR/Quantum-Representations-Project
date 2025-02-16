@@ -11,6 +11,8 @@ class QuantumCircuitVisualization(Scene):
         qc.cx(0, 1)  # Apply CNOT gate (entanglement)
         qc.measure([0, 1], [0, 1])  # Measure both qubits
         
+        print(qc.draw(output='text'))  # Print circuit to terminal for debugging
+        
         # Convert the circuit to an image
         circuit_img = circuit_drawer(qc, output='mpl')
         circuit_img.savefig("quantum_circuit.png")
@@ -22,17 +24,19 @@ class QuantumCircuitVisualization(Scene):
         self.play(FadeIn(circuit_diagram))
         self.wait(2)
         
-        # Create qubit lines
+        # Create qubit and classical bit lines
         qubit_lines = VGroup(
-            Line(LEFT * 4, RIGHT * 4),
-            Line(LEFT * 4, RIGHT * 4)
+            Line(LEFT * 4, RIGHT * 4),  # q0
+            Line(LEFT * 4, RIGHT * 4),  # q1
+            DashedLine(LEFT * 4, RIGHT * 4, color=GRAY)  # Classical bit line (c)
         ).arrange(DOWN, buff=1)
         self.play(Create(qubit_lines))
         
         # Add qubit labels
         qubit_labels = VGroup(
             Tex("$q_0$").next_to(qubit_lines[0], LEFT),
-            Tex("$q_1$").next_to(qubit_lines[1], LEFT)
+            Tex("$q_1$").next_to(qubit_lines[1], LEFT),
+            Tex("$c$").next_to(qubit_lines[2], LEFT)  # Classical register label
         )
         self.play(Write(qubit_labels))
         self.wait(1)
@@ -52,7 +56,7 @@ class QuantumCircuitVisualization(Scene):
         self.play(FadeIn(cnot_gate))
         self.wait(1)
         
-        # Measurement animation
+        # Measurement animation (connect to classical register)
         measure_boxes = VGroup(
             Square().scale(0.5).move_to(qubit_lines[0].get_right()),
             Square().scale(0.5).move_to(qubit_lines[1].get_right())
@@ -61,7 +65,11 @@ class QuantumCircuitVisualization(Scene):
             Tex("M").move_to(measure_boxes[0]),
             Tex("M").move_to(measure_boxes[1])
         )
-        measurements = VGroup(measure_boxes, measure_labels)
+        classical_arrows = VGroup(
+            Arrow(measure_boxes[0].get_bottom(), qubit_lines[2].get_center(), buff=0.1, color=WHITE, stroke_width=2),
+            Arrow(measure_boxes[1].get_bottom(), qubit_lines[2].get_center(), buff=0.1, color=WHITE, stroke_width=2)
+        )
+        measurements = VGroup(measure_boxes, measure_labels, classical_arrows)
         self.play(FadeIn(measurements))
         self.wait(2)
         
