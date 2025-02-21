@@ -97,3 +97,10 @@ if __name__ == "__main__":
     
     scene = QuantumCircuitVisualization(qc)
     scene.render()
+
+'''
+No lines through the boxes (e.g., H gate, M gate, etc.)
+Line should not extend past the measurement box (remember the line represent the qubit, when we measure the qubit, we are “destroying” it)    
+Should be a plus sign inside the circle (just extend to other end of circle)
+Experiment with colors 
+'''
