@@ -18,46 +18,59 @@ class QuantumCircuitVisualization(Scene):
     def construct(self):
         print(self.qc.draw(output='text'))  # Print circuit for debugging
 
-        # Initialize quantum and classical lines
-        qubit_lines = VGroup(*[Line(LEFT * 4, RIGHT * 4) for _ in range(self.num_qubits)]).arrange(DOWN, buff=1)
-        classical_line = DashedLine(LEFT * 4, RIGHT * 4, color=GRAY).next_to(qubit_lines, DOWN, buff=1)
-        all_lines = VGroup(qubit_lines, classical_line)
-        self.play(Create(all_lines))
+        # Shift entire circuit up to avoid overlap with time axis
+        circuit_shift = UP * 1.5
 
-        # Time axis (t-axis) moved below the diagram
-        t_axis = Line(LEFT * 4, RIGHT * 4, color=YELLOW).next_to(classical_line, DOWN, buff=1.5)
+        # Properly position the time axis (t-axis) at the bottom
+        t_axis = Line(LEFT * 6, RIGHT * 6, color=YELLOW).to_edge(DOWN, buff=1)
         t_label = Tex("t").next_to(t_axis, DOWN)
         self.play(Create(t_axis), Write(t_label))
         self.wait(1)
 
-        # Add qubit labels
-        qubit_labels = VGroup(*[Tex(f"$q_{i}$").next_to(qubit_lines[i], LEFT) for i in range(self.num_qubits)])
-        classical_label = Tex("$c$").next_to(classical_line, LEFT)
-        all_labels = VGroup(qubit_labels, classical_label)
-        self.play(Write(all_labels))
+        # Initialize qubit labels on the left side
+        qubit_labels = VGroup(*[Tex(f"$q_{i}$").to_edge(LEFT).shift(DOWN * i + circuit_shift) for i in range(self.num_qubits)])
+        classical_label = Tex("$c$").to_edge(LEFT).shift(DOWN * self.num_qubits + circuit_shift)
+        self.play(Write(qubit_labels), Write(classical_label))
         self.wait(1)
 
-        # Process the circuit step by step
-        x_offset = -3  # Initial x position of gates
-        t_position = -3  # Initial time position on t-axis
+        # Initialize lines for qubits and classical bit
+        qubit_lines = [Line(LEFT * 6, LEFT * 6, color=WHITE).shift(DOWN * i + circuit_shift) for i in range(self.num_qubits)]
+        classical_line = DashedLine(LEFT * 6, LEFT * 6, color=GRAY).shift(DOWN * self.num_qubits + circuit_shift)
+        all_lines = VGroup(*qubit_lines, classical_line)
+        self.add(all_lines)
 
-        for instruction in self.qc.data:
+        # Initialize time label at the top
+        time_label = Tex("t=0").to_edge(UP)
+        self.add(time_label)
+
+        # Iterate through time t, growing circuit from the left to the right
+        for t in range(len(self.qc.data)):
+            instruction = self.qc.data[t]
             gate, qubits, clbits = instruction.operation, instruction.qubits, instruction.clbits
             q_indices = [self.qc.find_bit(q).index for q in qubits]
             c_indices = [self.qc.find_bit(c).index for c in clbits] if clbits else []
+            
+            # Extend lines up to current time t, ensuring simultaneous growth
+            new_end = LEFT * 6 + RIGHT * (t + 1.5)
+            transformations = []
+            for q_index in range(self.num_qubits):
+                transformations.append(Transform(qubit_lines[q_index], Line(LEFT * 6, new_end, color=WHITE).shift(DOWN * q_index + circuit_shift)))
+            if self.num_clbits > 0:
+                transformations.append(Transform(classical_line, DashedLine(LEFT * 6, new_end, color=GRAY).shift(DOWN * self.num_clbits + circuit_shift)))
+            self.play(AnimationGroup(*transformations, lag_ratio=0), run_time=0.5)
             
             gate_group = None
             
             # Controlled gates (CX, CCX, etc.)
             if gate.name in ["cx", "ccx"]:
-                ctrl_dot = Dot().move_to(qubit_lines[q_indices[0]].get_center() + RIGHT * x_offset)
-                target_circle = Circle().scale(0.3).move_to(qubit_lines[q_indices[1]].get_center() + RIGHT * x_offset)
+                ctrl_dot = Dot().move_to(qubit_lines[q_indices[0]].get_end())
+                target_circle = Circle().scale(0.3).move_to(qubit_lines[q_indices[1]].get_end())
                 ctrl_line = Line(ctrl_dot.get_center(), target_circle.get_center())
                 gate_group = VGroup(ctrl_dot, target_circle, ctrl_line)
             
             # Measurement operations
             elif gate.name in ["measure"]:
-                measure_box = Square().scale(0.5).move_to(qubit_lines[q_indices[0]].get_center() + RIGHT * x_offset)
+                measure_box = Square().scale(0.5).move_to(qubit_lines[q_indices[0]].get_end())
                 measure_label = Tex(r"\textbf{M}").scale(0.7).move_to(measure_box)
                 arrow = Arrow(measure_box.get_bottom(), measure_box.get_bottom() + DOWN * 0.5, buff=0.1, color=WHITE, stroke_width=2)
                 collapse_line = Line(
@@ -69,23 +82,21 @@ class QuantumCircuitVisualization(Scene):
             
             # Single-qubit gates
             elif gate.num_qubits == 1:
-                gate_box = Square().scale(0.5).move_to(qubit_lines[q_indices[0]].get_center() + RIGHT * x_offset)
+                gate_box = Square().scale(0.5).move_to(qubit_lines[q_indices[0]].get_end())
                 gate_label = Tex(gate.name.upper()).move_to(gate_box)
                 gate_group = VGroup(gate_box, gate_label)
             
             if gate_group:
-                self.play(FadeIn(gate_group))
-                x_offset += 1.5  # Move to the right for next gate
-                
-                # Animate time axis increment
-                t_marker = Tex(f"t={t_position}").next_to(t_axis, UP).shift(RIGHT * t_position)
-                self.play(Write(t_marker))
-                t_position += 1.5
+                self.play(FadeIn(gate_group), run_time=0.5)
                 self.wait(0.5)
-        
+            
+            # Update time label at the top instead of multiple markers
+            new_time_label = Tex(f"t={t + 1}").to_edge(UP)
+            self.play(Transform(time_label, new_time_label), run_time=0.5)
+            
         self.wait(2)
         # Fade out everything
-        self.play(FadeOut(all_lines, all_labels, t_axis, t_label))
+        self.play(FadeOut(all_lines, qubit_labels, classical_label, t_axis, t_label, time_label))
         self.wait(1)
 
 if __name__ == "__main__":
@@ -97,10 +108,3 @@ if __name__ == "__main__":
     
     scene = QuantumCircuitVisualization(qc)
     scene.render()
-
-'''
-No lines through the boxes (e.g., H gate, M gate, etc.)
-Line should not extend past the measurement box (remember the line represent the qubit, when we measure the qubit, we are “destroying” it)    
-Should be a plus sign inside the circle (just extend to other end of circle)
-Experiment with colors 
-'''
