@@ -9,6 +9,10 @@ class QuantumGateApplication(Scene):
         self.gate_name = gate_name
         self.num_qubits = int(np.log2(len(initial_state)))
 
+    # make portable:
+    # define gate --> what are the arrays that we are dealing with?
+    # have set transitions, just plug n play on the gate and the state vector
+    # finish tensor product notes to clean up / fine tune
     def construct(self):
         title = Tex(f"Application of {self.gate_name} Gate").scale(0.8).to_edge(UP)
         self.play(Write(title))
