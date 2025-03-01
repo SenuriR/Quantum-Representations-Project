@@ -1,5 +1,6 @@
 .DS_Store
 
 media/
+/demo/media
 
 __pycache__/
