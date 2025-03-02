@@ -1,5 +1,6 @@
 from manim import *
 
+# TODO: making portable --> define common gates as matrices --> then plug n chug
 class TensorProductStepByStep(Scene):
     def construct(self):
         # Define basis vectors
