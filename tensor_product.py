@@ -24,12 +24,16 @@ class TensorProductStepByStep(Scene):
         self.play(Write(step1))
         self.wait(1)
 
+
+        # need to zoom out here
+
         step2 = MathTex(r"\begin{bmatrix}1 \cdot 1 \\ 1 \cdot 0 \\ 0 \cdot 1 \\ 0 \cdot 0\end{bmatrix} = \begin{bmatrix}1 \\ 0 \\ 0 \\ 0\end{bmatrix}").scale(scale_factor)
         step2.next_to(step1, RIGHT * 1.5)
         self.play(Write(step2))
         self.wait(2)
 
         # Expand for all basis combinations
+        # there's an error here with how we define the ket notation -- look into this
         full_basis = MathTex(
             r"|00\rangle = \begin{bmatrix}1 \\ 0 \\ 0 \\ 0\end{bmatrix}, "
             r"|01\rangle = \begin{bmatrix}0 \\ 1 \\ 0 \\ 0\end{bmatrix}, "
