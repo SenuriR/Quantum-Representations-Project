@@ -3,7 +3,7 @@ from manim import *
 class TensorProductForQuantum(Scene):
     def construct(self):
         # Define scaling factor for fitting elements
-        scale_factor = 0.7  # Slightly reduced to fit screen
+        scale_factor = 0.65  # Slightly reduced to fit screen better
         text_scale = 0.9  # Scale down text elements
         
         # Introduction text
@@ -25,15 +25,15 @@ class TensorProductForQuantum(Scene):
         # Show basis vectors
         self.play(Write(ket0), Write(ket1))
         self.wait(1)
+        self.play(FadeOut(ket0), FadeOut(ket1))
 
-        # Explain tensor product conceptually
-        explanation = Text("The tensor product expands the space to represent joint states", font_size=28).scale(text_scale)
-        explanation.to_edge(UP)
-        self.play(Write(explanation))
+        # Transition text
+        transition_text = Text("When we take the tensor product of two qubits, we get four possible basis states.", font_size=28).scale(text_scale)
+        transition_text.to_edge(UP)
+        self.play(Write(transition_text))
         self.wait(3)
-        self.play(FadeOut(explanation))
 
-        # Step-by-step tensor product derivation in a grid layout
+        # Step-by-step tensor product derivation in a single row layout
         tensor_expansion = [
             (r"|0\rangle \otimes |0\rangle =", r"\begin{bmatrix}1 \\ 0\end{bmatrix} \otimes \begin{bmatrix}1 \\ 0\end{bmatrix}", r"= \begin{bmatrix}1 \\ 0 \\ 0 \\ 0\end{bmatrix}"),
             (r"|0\rangle \otimes |1\rangle =", r"\begin{bmatrix}1 \\ 0\end{bmatrix} \otimes \begin{bmatrix}0 \\ 1\end{bmatrix}", r"= \begin{bmatrix}0 \\ 1 \\ 0 \\ 0\end{bmatrix}"),
@@ -41,20 +41,18 @@ class TensorProductForQuantum(Scene):
             (r"|1\rangle \otimes |1\rangle =", r"\begin{bmatrix}0 \\ 1\end{bmatrix} \otimes \begin{bmatrix}0 \\ 1\end{bmatrix}", r"= \begin{bmatrix}0 \\ 0 \\ 0 \\ 1\end{bmatrix}")
         ]
 
-        start_x = -3  # Left alignment
-        start_y = 1.5  # Start below the ket vectors
-        x_spacing = 5  # Horizontal spacing
-        y_spacing = -1.5  # Vertical spacing
+        start_x = -4.5  # Adjusted for better centering
+        y_position = 0  # Keep all elements in a single row
+        x_spacing = 3.5  # Reduced horizontal spacing to fit all elements
 
         for i, (label, equation, result) in enumerate(tensor_expansion):
             label_tex = MathTex(label).scale(scale_factor)
             equation_tex = MathTex(equation).scale(scale_factor)
-            result_tex = MathTex(result).scale(scale_factor)
+            result_tex = MathTex(result).scale(scale_factor).set_color(YELLOW)  # Highlight final basis vectors
             
-            col = i % 2  # Two columns
-            row = i // 2  # Two rows
+            x_pos = start_x + i * x_spacing  # Spread elements in one row with reduced spacing
             
-            label_tex.move_to([start_x + col * x_spacing, start_y + row * y_spacing, 0])
+            label_tex.move_to([x_pos, y_position, 0])
             equation_tex.next_to(label_tex, DOWN * 0.6)
             result_tex.next_to(equation_tex, DOWN * 0.6)
             
@@ -64,6 +62,8 @@ class TensorProductForQuantum(Scene):
             self.wait(1)
             self.play(Write(result_tex))
             self.wait(2)
+        
+        
 
         # Conclusion text
         conclusion_text = Text("These basis states span the 4D space of two qubits!", font_size=28).scale(text_scale)
@@ -72,5 +72,4 @@ class TensorProductForQuantum(Scene):
         self.wait(3)
         
         # Fade out everything
-        self.play(FadeOut(ket0), FadeOut(ket1), FadeOut(tensor_symbol),
-                  FadeOut(conclusion_text))
+        self.play(FadeOut(conclusion_text))
