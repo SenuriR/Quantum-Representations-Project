@@ -2,34 +2,26 @@ from manim import *
 from qiskit import QuantumCircuit
 import numpy as np
 
-class QuantumGateMatrices(Scene):
-    def construct(self):
-        title = Title("Matrix Representations of Common Quantum Gates")
-        self.play(Write(title))
-        self.wait(1)
-        
-        gates = [
-            ("Identity Gate (I)", MathTex(r"I = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}")),
-            ("Pauli-X Gate (X)", MathTex(r"X = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}")),
-            ("Pauli-Y Gate (Y)", MathTex(r"Y = \begin{bmatrix} 0 & -	i \\ 	i & 0 \end{bmatrix}")),
-            ("Pauli-Z Gate (Z)", MathTex(r"Z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}")),
-            ("Hadamard Gate (H)", MathTex(r"H = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}")),
-            ("CNOT Gate", MathTex(r"\text{CNOT} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{bmatrix}"))
-        ]
-        
-        for gate_name, matrix_tex in gates:
-            gate_label = Tex(gate_name).scale(1.2)
-            group = VGroup(gate_label, matrix_tex).arrange(DOWN, buff=0.5)
-            
-            self.play(Write(gate_label))
-            self.wait(1)
-            self.play(FadeIn(matrix_tex))
-            self.wait(2)
-            self.play(FadeOut(group))
-            
-        self.play(FadeOut(title))
-        self.wait(1)
-
+class BlochSphereInset(ThreeDScene):
+    def get_bloch_sphere(self):
+        self.set_camera_orientation(phi=60 * DEGREES, theta=-45 * DEGREES)
+        # Bloch Sphere Representation
+        bloch_sphere = Sphere(radius=1, color=BLUE)
+        bloch_sphere.set_opacity(0.5)
+        bloch_axes = VGroup(
+            Arrow3D([-1.5, 0, 0], [1.5, 0, 0], color=RED),  # X-axis
+            Arrow3D([0, -1.5, 0], [0, 1.5, 0], color=GREEN),  # Y-axis
+            Arrow3D([0, 0, -1.5], [0, 0, 1.5], color=WHITE)   # Z-axis
+        )
+        bloch_labels = VGroup(
+            Tex("X").next_to(bloch_axes[0].get_end(), RIGHT),
+            Tex("Y").next_to(bloch_axes[1].get_end(), UP),
+            Tex("Z").next_to(bloch_axes[2].get_end(), OUT)
+        )
+        state_vector_arrow = Arrow3D(start=[0, 0, 0], end=[0.7, 0.5, 0.5], color=YELLOW)
+        bloch_group = VGroup(bloch_sphere, bloch_axes, bloch_labels, state_vector_arrow).scale(0.8).rotate(angle=PI/6, axis=[1, 1, 0])
+        return bloch_group, state_vector_arrow
+    
 class QuantumCircuitVisualization(Scene):
     def __init__(self, qc=None, **kwargs):
         super().__init__(**kwargs)
@@ -42,6 +34,15 @@ class QuantumCircuitVisualization(Scene):
         self.qc = qc
         self.num_qubits = qc.num_qubits
         self.num_clbits = qc.num_clbits
+
+        self.gates_dict = {
+            "id": MathTex(r"I = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}"),  # Identity Gate
+            "x": MathTex(r"X = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}"),  # Pauli-X Gate
+            "y": MathTex(r"Y = \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}"),  # Pauli-Y Gate
+            "z": MathTex(r"Z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}"),  # Pauli-Z Gate
+            "h": MathTex(r"H = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}"),  # Hadamard Gate
+            "cx": MathTex(r"\text{CNOT} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{bmatrix}")  # CNOT Gate
+        }
 
     def construct(self):
         print(self.qc.draw(output='text'))  # Print circuit for debugging
@@ -108,7 +109,7 @@ class QuantumCircuitVisualization(Scene):
                 )
                 gate_group = VGroup(measure_box, measure_label, arrow, collapse_line)
             
-            # Single-qubit gates
+            # Single-qubit gates --> H, I, X, Y, Z
             elif gate.num_qubits == 1:
                 gate_box = Square().scale(0.5).move_to(qubit_lines[q_indices[0]].get_end())
                 gate_label = Tex(gate.name.upper()).move_to(gate_box)
@@ -117,6 +118,11 @@ class QuantumCircuitVisualization(Scene):
             if gate_group:
                 self.play(FadeIn(gate_group), run_time=0.5)
                 self.wait(0.5)
+    
+            scene_mobjects = self.mobjects.copy()
+            self.play(FadeOut(*scene_mobjects), ruin_time=0.5)
+            self.get_matrix_rep(gate.name)
+            self.play(FadeIn(*scene_mobjects), run_time=0.5)
             
             # Update time label at the top instead of multiple markers
             new_time_label = Tex(f"t={t + 1}").to_edge(UP)
@@ -125,6 +131,59 @@ class QuantumCircuitVisualization(Scene):
         self.wait(2)
         # Fade out everything
         self.play(FadeOut(all_lines, qubit_labels, classical_label, t_axis, t_label, time_label))
+        self.wait(1)
+
+    def get_matrix_rep(self, gate_name):
+        bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
+        bloch_sphere.to_corner(UR)
+        self.play(FadeIn(bloch_sphere))
+
+        # Grid transformation visualization
+        grid = ThreeDAxes()
+        # Adjust grid position for better 3D visualization
+        grid.rotate(angle=PI/6, axis=[1, 1, 0])
+        grid.scale(0.8)
+        self.play(Create(grid))
+        self.wait(1)
+        
+        # Move the vector from Bloch Sphere to grid
+        extrapolated_vector = Arrow(start=[-1, -1, 0], end=[1, 1, 0], color=YELLOW)
+        self.play(Transform(state_vector_arrow, extrapolated_vector))
+        self.wait(2)
+        
+        # Fade out Bloch Sphere
+        self.play(FadeOut(bloch_sphere))
+        
+        # Apply a matrix transformation to the grid
+        
+        # show matrix representation of gate
+        if gate_name == "measure":
+            square = Square().scale(0.5)
+            letter_m = Tex("M").move_to(square.get_center())
+            gate_group = VGroup(square, letter_m).move_to(bloch_sphere.get_bottom())
+            square_group = gate_group
+        else:
+            matrix_tex = self.gates_dict[gate_name]
+            gate_label = Tex(gate_name).scale(1.2)
+            gate_group = VGroup(gate_label, matrix_tex).move_to(bloch_sphere.get_bottom())
+            
+            square = Square().scale(0.5)
+            letter = Tex(gate_name).move_to(square.get_center())
+            square_group = VGroup(square, letter).move_to(bloch_sphere.get_bottom())
+            
+        self.play(FadeIn(gate_group))
+        self.wait(2)
+        self.play(Transform(gate_group, square_group))
+        self.wait(1)
+        self.play(FadeOut(square_group))
+        # self.play(FadeOut(gate_group))
+
+        transformation_matrix = [[2, 1], [-1, 3]] # this is just a simple example matrix
+        self.play(extrapolated_vector.animate.apply_matrix(transformation_matrix))
+        self.wait(2)
+        
+        # Fade out elements
+        self.play(FadeOut(grid, extrapolated_vector))
         self.wait(1)
 
 if __name__ == "__main__":
