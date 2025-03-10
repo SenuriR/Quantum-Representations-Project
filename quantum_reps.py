@@ -73,7 +73,8 @@ class QuantumCircuitVisualization(Scene):
         self.add(time_label)
 
         # Iterate through time t, growing circuit from the left to the right
-        for t in range(len(self.qc.data)):
+        # for t in range(len(self.qc.data)):
+        for t in range(1):
             instruction = self.qc.data[t]
             gate, qubits, clbits = instruction.operation, instruction.qubits, instruction.clbits
             q_indices = [self.qc.find_bit(q).index for q in qubits]
@@ -134,6 +135,65 @@ class QuantumCircuitVisualization(Scene):
         self.wait(1)
 
     def get_matrix_rep(self, gate_name):
+            bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
+            self.play(FadeIn(bloch_sphere))
+
+            # show matrix representation of gate
+            if gate_name == "measure":
+                square = Square().scale(0.5)
+                letter_m = Tex("M").move_to(square.get_center())
+
+                gate_group = VGroup(square, letter_m)
+                square_group = gate_group
+            else:
+                matrix_tex = self.gates_dict[gate_name]
+                gate_label = Tex(gate_name).scale(1.2)
+                square = Square().scale(0.5)
+                letter = Tex(gate_name).move_to(square.get_center())
+
+                gate_group = VGroup(gate_label, matrix_tex)
+                square_group = VGroup(square, letter)
+            
+            # gate_group.move_to(bloch_sphere.get_right(), buff = 2)
+            gate_group.next_to(bloch_sphere, RIGHT, buff=1)
+            square_group.move_to(bloch_sphere.get_center())
+
+            self.play(FadeIn(gate_group))
+            self.wait(2)
+            self.play(Transform(gate_group, square_group))
+            self.wait(1)
+            self.play(FadeOut(square_group))
+            self.play(FadeOut(gate_group))
+
+            bloch_sphere.to_corner(UR)
+
+            # Grid transformation visualization
+            grid = ThreeDAxes()
+            # Adjust grid position for better 3D visualization
+            grid.rotate(angle=PI/6, axis=[1, 1, 0])
+            grid.scale(0.8)
+            self.play(Create(grid))
+            self.wait(1)
+            
+            # Move the vector from Bloch Sphere to grid
+            extrapolated_vector = Arrow(start=[-1, -1, 0], end=[1, 1, 0], color=YELLOW)
+            self.play(Transform(state_vector_arrow, extrapolated_vector))
+            self.wait(2)
+            
+            # Fade out Bloch Sphere
+            self.play(FadeOut(bloch_sphere))
+            
+            # Apply a matrix transformation to the grid
+
+            transformation_matrix = [[2, 1], [-1, 3]] # this is just a simple example matrix
+            self.play(extrapolated_vector.animate.apply_matrix(transformation_matrix))
+            self.wait(2)
+            
+            # Fade out elements
+            self.play(FadeOut(grid, extrapolated_vector))
+            self.wait(1)
+'''
+    def get_matrix_rep(self, gate_name):
         bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
         bloch_sphere.to_corner(UR)
         self.play(FadeIn(bloch_sphere))
@@ -185,7 +245,7 @@ class QuantumCircuitVisualization(Scene):
         # Fade out elements
         self.play(FadeOut(grid, extrapolated_vector))
         self.wait(1)
-
+'''
 if __name__ == "__main__":
     qc = QuantumCircuit(3, 3)
     qc.h(0)
