@@ -122,6 +122,8 @@ class QuantumCircuitVisualization(Scene):
     
             scene_mobjects = self.mobjects.copy()
             self.play(FadeOut(*scene_mobjects), ruin_time=0.5)
+            print(f"q_indicies: {q_indices}, {type(q_indices)}")
+            print(f"q_index: {q_index}, {type(q_index)}")
             self.get_matrix_rep(gate.name)
             self.play(FadeIn(*scene_mobjects), run_time=0.5)
             
@@ -135,64 +137,109 @@ class QuantumCircuitVisualization(Scene):
         self.wait(1)
 
     def get_matrix_rep(self, gate_name):
-            bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
-            self.play(FadeIn(bloch_sphere))
+        if gate_name == "measure":
+            square = Square().scale(0.5)
+            letter_m = Tex("M").move_to(square.get_center())
+            gate_group = VGroup(square, letter_m)
+            square_group = gate_group
+        else:
+            script_1 = Tex(f"Applying the {gate_name} is simply a mathematical operation")
+            script_1.scale_to_fit_width(config.frame_width - 1)  # Ensures text fits the screen
+            self.play(FadeIn(script_1))
+            self.wait(2)
+            self.play(FadeOut(script_1))
 
-            # show matrix representation of gate
-            if gate_name == "measure":
-                square = Square().scale(0.5)
-                letter_m = Tex("M").move_to(square.get_center())
+            script_2 = Tex(f"This is a simple mathematical representation of the {gate_name} gate")
+            script_2.scale_to_fit_width(config.frame_width - 1)
+            self.play(FadeIn(script_2))
 
-                gate_group = VGroup(square, letter_m)
-                square_group = gate_group
-            else:
-                matrix_tex = self.gates_dict[gate_name]
-                gate_label = Tex(gate_name).scale(1.2)
-                square = Square().scale(0.5)
-                letter = Tex(gate_name).move_to(square.get_center())
-
-                gate_group = VGroup(gate_label, matrix_tex)
-                square_group = VGroup(square, letter)
-            
-            # gate_group.move_to(bloch_sphere.get_right(), buff = 2)
-            gate_group.next_to(bloch_sphere, RIGHT, buff=1)
-            square_group.move_to(bloch_sphere.get_center())
+            matrix_tex = self.gates_dict[gate_name]
+            gate_label = Tex(gate_name).scale(1.2)
+            gate_group = VGroup(gate_label, matrix_tex)
+            gate_group.to_corner(UR)
 
             self.play(FadeIn(gate_group))
             self.wait(2)
+            self.play(FadeOut(script_2))
+
+            script_3 = Tex(f"But for now, let's just represent it as a box")
+            script_3.scale_to_fit_width(config.frame_width - 1)
+            self.play(FadeIn(script_3))
+
+            square = Square().scale(0.5)
+            letter = Tex(gate_name).move_to(square.get_center())
+            square_group = VGroup(square, letter)
+            square_group.to_corner(UR)
+
             self.play(Transform(gate_group, square_group))
-            self.wait(1)
+            self.play(FadeOut(script_3))
             self.play(FadeOut(square_group))
             self.play(FadeOut(gate_group))
 
+            script_4 = Tex(f"This is [qubit index] represented as a Bloch sphere. Notice the yellow arrow.")
+            script_4.scale_to_fit_width(config.frame_width - 1)
+            self.play(FadeIn(script_4))
+
+            bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
             bloch_sphere.to_corner(UR)
+            self.play(FadeIn(bloch_sphere))
+            self.play(FadeOut(script_4))
 
-            # Grid transformation visualization
-            grid = ThreeDAxes()
-            # Adjust grid position for better 3D visualization
-            grid.rotate(angle=PI/6, axis=[1, 1, 0])
-            grid.scale(0.8)
-            self.play(Create(grid))
+            script_5 = Tex(f"This yellow arrow is called a \"vector\". It \"defines\" this qubit in a special way.")
+            script_5.scale_to_fit_width(config.frame_width - 1)
+            self.play(FadeIn(script_5))
             self.wait(1)
-            
-            # Move the vector from Bloch Sphere to grid
-            extrapolated_vector = Arrow(start=[-1, -1, 0], end=[1, 1, 0], color=YELLOW)
-            self.play(Transform(state_vector_arrow, extrapolated_vector))
-            self.wait(2)
-            
-            # Fade out Bloch Sphere
-            self.play(FadeOut(bloch_sphere))
-            
-            # Apply a matrix transformation to the grid
+            self.play(FadeOut(script_5))
 
-            transformation_matrix = [[2, 1], [-1, 3]] # this is just a simple example matrix
-            self.play(extrapolated_vector.animate.apply_matrix(transformation_matrix))
+            script_6 = Tex(f"Applying the {gate_name} gate to this qubit is like making the arrow, the vector, point in a different direction.")
+            script_6.scale_to_fit_width(config.frame_width - 1)
+            self.play(FadeIn(script_6))
+            square_group.move_to(bloch_sphere.get_center())
+            self.play(FadeIn(square_group))
             self.wait(2)
-            
-            # Fade out elements
-            self.play(FadeOut(grid, extrapolated_vector))
-            self.wait(1)
-'''
+
+            self.play(FadeOut(script_6))
+            self.play(FadeOut(square_group))
+
+        # Grid transformation visualization
+        grid = ThreeDAxes()
+        grid.rotate(angle=PI/6, axis=[1, 1, 0])
+        grid.scale(0.8)
+        self.play(Create(grid))
+        self.wait(1)
+
+        script_7 = Tex(f"vector BEFORE applying {gate_name} gate")
+        script_7.to_corner(UL)
+        self.play(FadeIn(script_7))
+
+        # Move the vector from Bloch Sphere to grid
+        extrapolated_vector = Arrow(start=[-1, -1, 0], end=[1, 1, 0], color=YELLOW)
+        self.play(Transform(state_vector_arrow, extrapolated_vector))
+        self.wait(2)
+        self.play(FadeOut(script_7))
+
+        # Fade out Bloch Sphere
+        self.play(FadeOut(bloch_sphere))
+
+        script_8 = Tex(f"vector AFTER applying {gate_name} gate")
+        script_8.to_corner(UL)
+        self.play(FadeIn(script_8))
+
+        # Apply a matrix transformation to the grid
+        transformation_matrix = [[2, 1], [-1, 3]]
+        self.play(extrapolated_vector.animate.apply_matrix(transformation_matrix))
+        self.wait(2)
+        # Fade out elements
+        self.play(FadeOut(grid, extrapolated_vector, script_8))
+        self.wait(1)
+
+        # next: show extrapolated vector back onto the bloch sphere?
+
+
+    def play_script(self, script_tex):
+        script_tex.move_to(UL)
+        self.wait(1)
+'''_
     def get_matrix_rep(self, gate_name):
         bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
         bloch_sphere.to_corner(UR)
