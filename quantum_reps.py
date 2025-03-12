@@ -206,6 +206,8 @@ class QuantumReps(Scene):
             self.play(FadeOut(square_group))
             self.wait(2)
 
+            # testing git
+
             self.play(FadeOut(script_6))
 
             # Grid transformation visualization
