@@ -141,6 +141,9 @@ class QuantumReps(Scene):
         self.play(FadeOut(all_lines, qubit_labels, classical_label, t_axis, t_label, time_label))
         self.wait(1)
 
+
+    # need to edit to show full matrix set, not just t = 1
+
     def get_matrix_rep(self, gate_name, qubit):
         if gate_name == "measure":
             square = Square().scale(0.5)
