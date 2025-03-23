@@ -1,3 +1,4 @@
+# this is going to end up being the main driver code for the program
 from manim import *
 from qiskit import QuantumCircuit
 import numpy as np
