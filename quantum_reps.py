@@ -143,7 +143,7 @@ class QuantumReps(Scene):
         self.wait(1)
 
 
-    # need to edit to show full matrix set, not just t = 1
+    # need to edit to show full matrix set, not just t = 1, i.e., t > 0 (account for spacing)
 
     def get_matrix_rep(self, gate_name, qubit):
         if gate_name == "measure":
