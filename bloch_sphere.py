@@ -1,39 +1,35 @@
-# this is going to end up being the main driver code for the program
 from manim import *
-from qiskit import QuantumCircuit
 import numpy as np
 
-class BlochSphereInset(ThreeDScene):
+class BlochSphereMatchingReference(ThreeDScene):
     def get_bloch_sphere(self):
-        self.set_camera_orientation(phi=70 * DEGREES, theta=0 * DEGREES)  # looking slightly down, centered on Z-axis
+        # Match reference image: slight overhead, diagonal view
+        self.set_camera_orientation(phi=70 * DEGREES, theta=-135 * DEGREES)
 
+        # Sphere
         bloch_sphere = Sphere(radius=1, color=BLUE).set_opacity(0.5)
-        
-        bloch_axes = VGroup(
-            Arrow3D([-1.5, 0, 0], [1.5, 0, 0], color=RED),    # X-axis
-            Arrow3D([0, -1.5, 0], [0, 1.5, 0], color=GREEN),  # Y-axis
-            Arrow3D([0, 0, -1.5], [0, 0, 1.5], color=WHITE)   # Z-axis
-        )
-        
-        bloch_labels = VGroup(
-            Tex("X").next_to(bloch_axes[0].get_end(), RIGHT),
-            Tex("Y").next_to(bloch_axes[1].get_end(), UP),
-            Tex("Z").next_to(bloch_axes[2].get_end(), OUT)
-        )
-        
-        state_vector_arrow = Arrow3D(start=[0, 0, 0], end=[0.7, 0.5, 0.5], color=YELLOW)
-        
-        bloch_group = VGroup(bloch_sphere, bloch_axes, bloch_labels, state_vector_arrow)
-        bloch_group.scale(0.8)
 
-        # Rotate so Z-axis points toward the camera
-        bloch_group.rotate(angle=PI/2, axis=UP)
+        # Axes (matching directions in image)
+        z_axis = Arrow3D(start=[-1.5, 0, 0], end=[1.5, 0, 0], color=RED)     # X → →
+        x_axis = Arrow3D(start=[0, -1.5, 0], end=[0, 1.5, 0], color=GREEN)   # Y ↑ ↑
+        y_axis = Arrow3D(start=[0, 0, -1.5], end=[0, 0, 1.5], color=BLUE)    # Z ⊙ (blue, like in image)
+
+        # Labels (positioned clearly away from ends)
+        z_label = Tex("Z", color=RED).move_to(x_axis.get_end() + 0.2 * RIGHT)
+        x_label = Tex("X", color=GREEN).move_to(y_axis.get_end() + 0.2 * UP)
+        y_label = Tex("Y", color=BLUE).move_to(z_axis.get_end() + 0.2 * OUT)
+
+        # State vector (optional)
+        state_vector_arrow = Arrow3D(start=[0, 0, 0], end=[0.5, 0.5, 0.7], color=YELLOW)
+
+        # Group
+        axes_group = VGroup(x_axis, y_axis, z_axis, x_label, y_label, z_label)
+        bloch_group = VGroup(bloch_sphere, axes_group, state_vector_arrow)
+        bloch_group.scale(1.2)
 
         return bloch_group, state_vector_arrow
 
     def construct(self):
-        bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
-        bloch_sphere.to_corner(UR)
-        self.play(FadeIn(bloch_sphere))
+        bloch_sphere, _ = self.get_bloch_sphere()
+        self.add(bloch_sphere)
         self.wait(3)
-        self.play(FadeOut(bloch_sphere))
