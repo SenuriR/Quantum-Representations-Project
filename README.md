@@ -1,5 +1,9 @@
 # Quantum-Representations
 
+![Bloch Sphere Representation](assets/images/BlochSphere)
+![Entangled Qubits Representation](assets/images/EntangledQubits)
+
+
 ## Overview
 This Manim script provides an interactive and visual representation of a 3D undirected graph. The vertices are represented by `Sphere` mobjects, while the edges are visualized using `Line` mobjects. The script enables users to dynamically generate and manipulate cyclical graphs in a 3D space.
 
