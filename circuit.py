@@ -7,11 +7,9 @@ class Circuit(Scene):
     def __init__(self, qc=None, **kwargs):
         super().__init__(**kwargs)
         if qc is None:
-            qc = QuantumCircuit(3, 3)
+            qc = QuantumCircuit(2,2)
             qc.h(0)
             qc.cx(0, 1)
-            qc.cx(1, 2)
-            qc.measure([0, 1, 2], [0, 1, 2])
         self.qc = qc
         self.num_qubits = qc.num_qubits
         self.num_clbits = qc.num_clbits
@@ -122,11 +120,5 @@ class Circuit(Scene):
 
 
 if __name__ == "__main__":
-    qc = QuantumCircuit(3, 3)
-    qc.h(0)
-    qc.cx(0, 1)
-    qc.cx(1, 2)
-    qc.measure([0, 1, 2], [0, 1, 2])
-    
-    scene = Circuit(qc)
+    scene = Circuit()
     scene.render()
