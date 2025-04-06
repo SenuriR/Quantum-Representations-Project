@@ -1,7 +1,7 @@
 # Quantum-Representations
 
-![Bloch Sphere Representation](assets/images/BlochSphere)
-![Entangled Qubits Representation](assets/images/EntangledQubits)
+![Bloch Sphere Representation](assets/images/BlochSphere.png)
+![Entangled Qubits Representation](assets/images/EntangledQubits.png)
 
 
 ## Overview
