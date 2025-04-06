@@ -311,5 +311,5 @@ if __name__ == "__main__":
     qc.cx(1, 2)
     qc.measure([0, 1, 2], [0, 1, 2])
     
-    scene = QuantumCircuitVisualization(qc)
+    scene = QuantumReps(qc)
     scene.render()
