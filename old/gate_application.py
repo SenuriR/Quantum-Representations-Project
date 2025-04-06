@@ -1,6 +1,6 @@
 from manim import *
 import numpy as np
-from gates_def import gate_definitions  # Import the predefined gates
+from old.gates_def import gate_definitions  # Import the predefined gates
 
 class QuantumGateApplication(Scene):
     def __init__(self, gate_name="hadamard_3", **kwargs):

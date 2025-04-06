@@ -1,6 +1,6 @@
 .DS_Store
 venv
-media/
-/demo/media
+/epr_example/media
+/old/media
 
 __pycache__/
