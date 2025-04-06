@@ -244,66 +244,10 @@ class QuantumReps(Scene):
             self.play(FadeOut(bloch_sphere, grid, extrapolated_vector, script_8))
             self.wait(1)
 
-        # next: show extrapolated vector back onto the bloch sphere?
-
-
     def play_script(self, script_tex):
         script_tex.move_to(UL)
         self.wait(1)
-'''_
-    def get_matrix_rep(self, gate_name):
-        bloch_sphere, state_vector_arrow = BlochSphereInset().get_bloch_sphere()
-        bloch_sphere.to_corner(UR)
-        self.play(FadeIn(bloch_sphere))
 
-        # Grid transformation visualization
-        grid = ThreeDAxes()
-        # Adjust grid position for better 3D visualization
-        grid.rotate(angle=PI/6, axis=[1, 1, 0])
-        grid.scale(0.8)
-        self.play(Create(grid))
-        self.wait(1)
-        
-        # Move the vector from Bloch Sphere to grid
-        extrapolated_vector = Arrow(start=[-1, -1, 0], end=[1, 1, 0], color=YELLOW)
-        self.play(Transform(state_vector_arrow, extrapolated_vector))
-        self.wait(2)
-        
-        # Fade out Bloch Sphere
-        self.play(FadeOut(bloch_sphere))
-        
-        # Apply a matrix transformation to the grid
-        
-        # show matrix representation of gate
-        if gate_name == "measure":
-            square = Square().scale(0.5)
-            letter_m = Tex("M").move_to(square.get_center())
-            gate_group = VGroup(square, letter_m).move_to(bloch_sphere.get_bottom())
-            square_group = gate_group
-        else:
-            matrix_tex = self.gates_dict[gate_name]
-            gate_label = Tex(gate_name).scale(1.2)
-            gate_group = VGroup(gate_label, matrix_tex).move_to(bloch_sphere.get_bottom())
-            
-            square = Square().scale(0.5)
-            letter = Tex(gate_name).move_to(square.get_center())
-            square_group = VGroup(square, letter).move_to(bloch_sphere.get_bottom())
-            
-        self.play(FadeIn(gate_group))
-        self.wait(2)
-        self.play(Transform(gate_group, square_group))
-        self.wait(1)
-        self.play(FadeOut(square_group))
-        # self.play(FadeOut(gate_group))
-
-        transformation_matrix = [[2, 1], [-1, 3]] # this is just a simple example matrix
-        self.play(extrapolated_vector.animate.apply_matrix(transformation_matrix))
-        self.wait(2)
-        
-        # Fade out elements
-        self.play(FadeOut(grid, extrapolated_vector))
-        self.wait(1)
-'''
 if __name__ == "__main__":
     qc = QuantumCircuit(3, 3)
     qc.h(0)
