@@ -52,11 +52,42 @@ class QuantumReps(ThreeDScene):
         original_gamma = self.camera.get_gamma()
         original_focal_distance = self.camera.focal_distance
 
-        # scene 1
-        text = Text("EPR Pair Example")
+        text = Text("EPR Pair Generation Protocol", font_size=40).to_edge(ORIGIN)
         self.play(FadeIn(text))
         self.wait(2)
         self.play(FadeOut(text))
+
+        max_width = config.frame_width - 1  # Leave some margin on both sides
+
+        # Define and scale each sentence
+        sentence1 = Text(
+            "The EPR (Einstein-Podolsky-Rosen) pair generation protocol creates a maximally entangled quantum state."
+        )
+        sentence1.scale_to_fit_width(max_width)
+
+        sentence2 = Text(
+            "Typically the Bell state, this is done by applying a Hadamard gate to the first qubit."
+        )
+        sentence2.scale_to_fit_width(max_width)
+
+        sentence3 = Text(
+            "A CNOT gate is then applied with the first qubit as control and second as target—creating entanglement."
+        )
+        sentence3.scale_to_fit_width(max_width)
+
+        # Positioning: staggered vertically for readability
+        sentence1.move_to(UP * 2)
+        sentence2.move_to(ORIGIN)
+        sentence3.move_to(DOWN * 2)
+
+        # Play animations
+        self.play(FadeIn(sentence1))
+        self.wait(1.5)
+        self.play(FadeIn(sentence2))
+        self.wait(1.5)
+        self.play(FadeIn(sentence3))
+        self.wait(9)
+        self.play(FadeOut(Group(sentence1, sentence2, sentence3)))
 
         text = Text("Start with two qubits")
         self.play(FadeIn(text))
@@ -130,6 +161,8 @@ class QuantumReps(ThreeDScene):
         self.play(Create(time_axis), Write(time_label))
         self.play(Write(q0_label), Write(q1_label))
 
+        self.wait(4)
+
         self.clear()
 
         text = Text("Vector View")
@@ -190,7 +223,7 @@ class QuantumReps(ThreeDScene):
         self.play(FadeOut(text))
 
         
-        text = Text("Circuit View")
+        text = Text("Circuit View, t = 1")
         text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
 
@@ -200,6 +233,8 @@ class QuantumReps(ThreeDScene):
         self.play(Create(line_q0_1a), Create(line_q1_1))
         self.play(FadeIn(h_group))
         self.play(Create(line_q0_1b))
+
+        self.wait(4)
 
         self.clear()
 
@@ -231,7 +266,7 @@ class QuantumReps(ThreeDScene):
 
         group2 = VGroup(h_step_label, h_matrix, h_mult).arrange(DOWN, buff=0.5).scale(0.95).move_to(ORIGIN)
         self.play(FadeIn(group2))
-        self.wait(3)
+        self.wait(8)
         self.play(FadeOut(group2))
 
         self.clear()
@@ -276,14 +311,14 @@ class QuantumReps(ThreeDScene):
         self.wait(2)
         self.play(FadeOut(text))
 
-        text = Text("Apply the CNOT gate")
+        text = Text("Next, apply the CNOT gate")
         text.move_to(UP)
         self.play(FadeIn(text))
         self.wait(2)
         self.play(FadeOut(text))
 
 
-        text = Text("Circuit View")
+        text = Text("Circuit View, t = 2")
         text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
 
@@ -299,7 +334,7 @@ class QuantumReps(ThreeDScene):
         self.play(FadeIn(cx_group))
         self.play(Create(line_q0_2b), Create(line_q1_2b))
 
-        self.wait(2)
+        self.wait(4)
 
         self.clear()
 
@@ -332,7 +367,7 @@ class QuantumReps(ThreeDScene):
         self.play(FadeIn(group3))
         self.wait(4)
         self.play(Indicate(final_state))
-        self.wait(2)
+        self.wait(8)
 
         self.clear()
 
