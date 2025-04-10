@@ -64,10 +64,8 @@ class QuantumReps(ThreeDScene):
         self.play(FadeOut(text))
 
         text = Text("Circuit View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         # intialize all circuit elements
         # === CONFIG ===
@@ -135,16 +133,15 @@ class QuantumReps(ThreeDScene):
         self.clear()
 
         text = Text("Vector View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         ## Stage 1: Initial state
-        initial_label = Tex(r"Initial State:", font_size=36)
+        # initial_label = Tex(r"Initial State:", font_size=36)
         initial_ket = Tex(r"$\ket{00} = \begin{bmatrix}1 \\ 0 \\ 0 \\ 0\end{bmatrix}$", font_size=36, tex_template=tex_template)
 
-        group1 = VGroup(initial_label, initial_ket).arrange(DOWN, center=True).move_to(ORIGIN)
+        # group1 = VGroup(initial_label, initial_ket).arrange(DOWN, center=True).move_to(ORIGIN)
+        group1 = VGroup(initial_ket).arrange(DOWN, center=True).move_to(ORIGIN)
         self.play(FadeIn(group1))
         self.wait(2)
         self.play(FadeOut(group1))
@@ -194,10 +191,8 @@ class QuantumReps(ThreeDScene):
 
         
         text = Text("Circuit View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         self.play(Create(time_axis), Write(time_label))
         self.play(Write(q0_label), Write(q1_label))
@@ -209,10 +204,8 @@ class QuantumReps(ThreeDScene):
         self.clear()
 
         text = Text("Vector View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         tex_template = TexTemplate()
         tex_template.add_to_preamble(r"\usepackage{braket}")
@@ -291,10 +284,8 @@ class QuantumReps(ThreeDScene):
 
 
         text = Text("Circuit View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         # === ANIMATION SEQUENCE ===
         self.play(Create(time_axis), Write(time_label))
@@ -313,10 +304,8 @@ class QuantumReps(ThreeDScene):
         self.clear()
 
         text = Text("Vector View")
-        text.move_to(UP)
+        text.to_corner(UL).set_opacity(0.85)
         self.play(FadeIn(text))
-        self.wait(2)
-        self.play(FadeOut(text))
 
         # Stage 3: Apply CNOT
         cnot_label = Tex(r"Apply CNOT:", font_size=36)
