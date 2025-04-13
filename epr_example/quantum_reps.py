@@ -112,8 +112,8 @@ class QuantumReps(ThreeDScene):
         y_q1 = -qubit_spacing / 2
 
         # === QUBIT LABELS ===
-        q0_label = Tex("$q_0$")
-        q1_label = Tex("$q_1$")
+        q0_label = Tex("$ |0> $")
+        q1_label = Tex("$ |0> $")
         q0_label.next_to([x_start - 0.4, y_q0, 0], LEFT)
         q1_label.next_to([x_start - 0.4, y_q1, 0], LEFT)
 
