@@ -4,6 +4,13 @@ from circuit import Circuit
 from entangled_qubits import TwoEntangledQubits
 from vector import EPRPairMatrixWalkthrough
 
+"""
+TODO:
+Add ket 0 to circuit view
+Show product state breakdowns when it can be done 
+Qiskit can make Bloch spheres 
+"""
+
 class QuantumReps(ThreeDScene):
     def get_bloch_sphere(self, sphere_color=BLUE, state_vector_endpoint=[0, 0, 1.5]):
         # Ensure correct type for vector arithmetic
