@@ -22,3 +22,5 @@ class BlochSphereFromImage(Scene):
         self.wait(0.5)
         self.play(FadeIn(group, shift=UP), run_time=1.5)
         self.wait(2)
+
+# next step: combine manim_bloch with qiskit_bloch to (1) generate bloch image via qiskit and (2) save, obtain, and display that image via qiskit
