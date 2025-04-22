@@ -7,8 +7,8 @@ from vector import EPRPairMatrixWalkthrough
 """
 TODO:
 Add ket 0 to circuit view
-Show product state breakdowns when it can be done 
-Qiskit can make Bloch spheres 
+Show product state breakdowns when it can be done
+Qiskit can make Bloch spheres
 """
 
 class QuantumReps(ThreeDScene):
