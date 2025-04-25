@@ -5,11 +5,11 @@ class QuantumRepsMultiView(ThreeDScene):
     def get_bloch_sphere(self, state_vector_endpoint=[0, 0, 1], sphere_color=YELLOW):
         bloch_sphere = Sphere(radius=1).set_fill(opacity=0.3).set_stroke(WHITE, 0.6)
 
-        x_axis = Arrow3D([-1.5, 0, 0], [1.5, 0, 0], color=WHITE)
-        y_axis = Arrow3D([0, -1.5, 0], [0, 1.5, 0], color=WHITE)
-        z_axis = Arrow3D([0, 0, -1.5], [0, 0, 1.5], color=WHITE)
+        x_axis = Arrow3D(np.array([-1.5, 0, 0]), np.array([1.5, 0, 0]), color=WHITE)
+        y_axis = Arrow3D(np.array([0, -1.5, 0]), np.array([0, 1.5, 0]), color=WHITE)
+        z_axis = Arrow3D(np.array([0, 0, -1.5]), np.array([0, 0, 1.5]), color=WHITE)
 
-        state_vector_arrow = Arrow3D([0, 0, 0], state_vector_endpoint, color=sphere_color)
+        state_vector_arrow = Arrow3D(np.array([0, 0, 0]), np.array(state_vector_endpoint, dtype=float), color=sphere_color)
 
         def state_label(tex_str, pos):
             return Tex(tex_str, color=WHITE).move_to(pos).rotate(PI / 2, axis=RIGHT).rotate(PI - PI / 6, axis=OUT)
@@ -24,6 +24,7 @@ class QuantumRepsMultiView(ThreeDScene):
         axes_group = VGroup(x_axis, y_axis, z_axis)
         state_labels = VGroup(ket_0, ket_1, ket_plus, ket_minus, ket_plus_i, ket_minus_i)
         bloch_group = VGroup(bloch_sphere, axes_group, state_labels, state_vector_arrow).scale(0.6)
+
         return bloch_group
 
     def get_bloch_view(self, vec_q0, vec_q1):
@@ -31,22 +32,29 @@ class QuantumRepsMultiView(ThreeDScene):
         q1 = self.get_bloch_sphere(vec_q1).shift(RIGHT * 1.5)
         return VGroup(q0, q1)
 
+
     def get_vector_view(self, step_num):
         tex_template = TexTemplate()
-        tex_template.add_to_preamble(r"\\usepackage{braket}")
+        tex_template.add_to_preamble(r"\usepackage{braket}")
 
         if step_num == 1:
-            return Tex(r"$\\ket{00} = \\begin{bmatrix}1 \\\\ 0 \\\\ 0 \\\\ 0\\end{bmatrix}$", tex_template=tex_template)
+            return Tex(
+                r"$\ket{00} = \begin{bmatrix} 1 \\ 0 \\ 0 \\ 0 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
         elif step_num == 2:
-            return Tex(r"""
-                $\\frac{1}{\\sqrt{2}}(\\ket{00} + \\ket{10}) =
-                \\frac{1}{\\sqrt{2}} \\begin{bmatrix}1 \\\\ 0 \\\\ 1 \\\\ 0\\end{bmatrix}$
-            """, font_size=32, tex_template=tex_template)
+            return Tex(
+                r"$\frac{1}{\sqrt{2}}(\ket{00} + \ket{10}) = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 0 \\ 1 \\ 0 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
         elif step_num == 3:
-            return Tex(r"""
-                $\\frac{1}{\\sqrt{2}}(\\ket{00} + \\ket{11}) =
-                \\frac{1}{\\sqrt{2}} \\begin{bmatrix}1 \\\\ 0 \\\\ 0 \\\\ 1\\end{bmatrix}$
-            """, font_size=32, tex_template=tex_template)
+            return Tex(
+                r"$\frac{1}{\sqrt{2}}(\ket{00} + \ket{11}) = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
 
     def get_circuit_view(self, step_num):
         x_start = 0
