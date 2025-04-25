@@ -1,85 +1,111 @@
-# === IMPORTS ===
-from qiskit import QuantumCircuit, transpile
-from qiskit.quantum_info import Statevector, DensityMatrix, Pauli
-from qiskit_aer import AerSimulator
-from qiskit.visualization import plot_bloch_vector
-
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import uuid
-
 from manim import *
+from pathlib import Path
 
-# === UTILS ===
-def generate_bloch_image(bloch_vector, label="Bloch Sphere", output_dir="images"):
-    os.makedirs(output_dir, exist_ok=True)
-    filename = f"bloch_{uuid.uuid4().hex[:8]}.png"
-    save_path = os.path.join(output_dir, filename)
+class QuantumRepsMultiView(ThreeDScene):
+    def get_bloch_view(self, step_num):
+        # === INSERT YOUR BLOCH IMAGE FILENAMES HERE ===
+        filenames = {
+            1: ("images/step1_0.png", "images/step1_1.png"),
+            2: ("images/step2_0.png", "images/step2_1.png"),
+            3: ("images/step3_0.png", "images/step3_1.png"),
+        }
 
-    fig = plot_bloch_vector(bloch_vector, title=label)
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-    return save_path
+        q0_path, q1_path = filenames.get(step_num, (None, None))
+        if not (q0_path and q1_path):
+            raise ValueError(f"No Bloch sphere images found for step {step_num}.")
 
-from qiskit.quantum_info import partial_trace
+        if not (Path(q0_path).exists() and Path(q1_path).exists()):
+            raise FileNotFoundError(f"Image files missing: {q0_path}, {q1_path}")
 
-def get_single_qubit_bloch_vector(dm, qubit_index):
-    paulis = [Pauli("X"), Pauli("Y"), Pauli("Z")]
-    reduced_dm = partial_trace(dm, [qubit_index])
-    return [np.real(reduced_dm.expectation_value(p)) for p in paulis]
+        img_q0 = ImageMobject(q0_path).scale(0.4).shift(LEFT * 1.5)
+        img_q1 = ImageMobject(q1_path).scale(0.4).shift(RIGHT * 1.5)
 
+        label_q0 = Text("Qubit 0", font_size=24).next_to(img_q0, DOWN)
+        label_q1 = Text("Qubit 1", font_size=24).next_to(img_q1, DOWN)
 
-def simulate_circuit(qc):
-    simulator = AerSimulator()
-    qc.save_statevector()
-    t_qc = transpile(qc, simulator)
-    result = simulator.run(t_qc).result()
-    return Statevector(result.get_statevector())
+        return VGroup(img_q0, img_q1, label_q0, label_q1)
 
-# === MANIM SCENE ===
-class EPRBlochEvolution(Scene):
+    def get_vector_view(self, step_num):
+        tex_template = TexTemplate()
+        tex_template.add_to_preamble(r"\usepackage{braket}")
+
+        if step_num == 1:
+            return Tex(
+                r"$\ket{00} = \begin{bmatrix} 1 \\ 0 \\ 0 \\ 0 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
+        elif step_num == 2:
+            return Tex(
+                r"$\frac{1}{\sqrt{2}}(\ket{00} + \ket{10}) = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 0 \\ 1 \\ 0 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
+        elif step_num == 3:
+            return Tex(
+                r"$\frac{1}{\sqrt{2}}(\ket{00} + \ket{11}) = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix}$",
+                tex_template=tex_template
+            )
+
+    def get_circuit_view(self, step_num):
+        x_start = 0
+        width = 2.5
+        gate_gap = 0.4
+        qubit_spacing = 1.2
+        x_end = x_start + width * 2
+
+        y_q0 = qubit_spacing / 2
+        y_q1 = -qubit_spacing / 2
+
+        q0_label = Tex("$ |0> $").next_to([x_start - 0.4, y_q0, 0], LEFT)
+        q1_label = Tex("$ |0> $").next_to([x_start - 0.4, y_q1, 0], LEFT)
+
+        elements = [q0_label, q1_label]
+
+        if step_num >= 1:
+            t1_mid = x_start + width / 2
+            line_q0_1a = Line([x_start, y_q0, 0], [t1_mid - gate_gap, y_q0, 0])
+            line_q0_1b = Line([t1_mid + gate_gap, y_q0, 0], [x_start + width, y_q0, 0])
+            line_q1_1 = Line([x_start, y_q1, 0], [x_start + width, y_q1, 0])
+
+            h_gate = Square(0.6).move_to([t1_mid, y_q0, 0])
+            h_label = Tex("H").scale(1.2).move_to(h_gate)
+            h_group = VGroup(h_gate, h_label)
+
+            elements += [line_q0_1a, h_group, line_q0_1b, line_q1_1]
+
+        if step_num in [2, 3]:
+            t2_mid = x_start + width + width / 2
+            line_q0_2a = Line([x_start + width, y_q0, 0], [t2_mid - gate_gap, y_q0, 0])
+            line_q0_2b = Line([t2_mid + gate_gap, y_q0, 0], [x_end, y_q0, 0])
+            line_q1_2a = Line([x_start + width, y_q1, 0], [t2_mid - gate_gap, y_q1, 0])
+            line_q1_2b = Line([t2_mid + gate_gap, y_q1, 0], [x_end, y_q1, 0])
+
+            ctrl_dot = Dot(radius=0.07).move_to([t2_mid, y_q0, 0])
+            tgt_circle = Circle(radius=0.15).move_to([t2_mid, y_q1, 0])
+            vert_line = Line(ctrl_dot.get_center(), tgt_circle.get_center())
+            cx_group = VGroup(ctrl_dot, tgt_circle, vert_line)
+
+            elements += [line_q0_2a, cx_group, line_q0_2b, line_q1_2a, line_q1_2b]
+
+        return VGroup(*elements).scale(0.9)
+
+    def show_step(self, step_num, vec_q0, vec_q1):
+        circuit = self.get_circuit_view(step_num).move_to(LEFT * 5)
+        vector = self.get_vector_view(step_num).move_to(ORIGIN)
+        bloch = self.get_bloch_view(step_num).move_to(RIGHT * 5)
+
+        self.play(FadeIn(circuit), FadeIn(vector), FadeIn(bloch))
+        self.wait(4)
+        self.play(FadeOut(circuit), FadeOut(vector), FadeOut(bloch))
+
     def construct(self):
-        steps = [
-            ("Initial State |00⟩", lambda qc: qc),
-            ("After Hadamard on q0", lambda qc: qc.h(0)),
-            ("After CNOT (Entangled)", lambda qc: qc.cx(0, 1)),
-        ]
+        self.set_camera_orientation(phi=70 * DEGREES, theta=30 * DEGREES)
+        title = Text("EPR Pair Generation – Multi-View", font_size=40)
+        self.play(FadeIn(title))
+        self.wait(2)
+        self.play(FadeOut(title))
 
-        qc = QuantumCircuit(2)
-        bloch_images = []
-
-        for step_name, apply_gate in steps:
-            step_qc = qc.copy()
-            apply_gate(step_qc)
-
-            state = simulate_circuit(step_qc)
-            dm = DensityMatrix(state)
-
-            # Generate Bloch vectors and images
-            vec0 = get_single_qubit_bloch_vector(dm, 0)
-            vec1 = get_single_qubit_bloch_vector(dm, 1)
-            img0 = generate_bloch_image(vec0, label=f"{step_name} — Qubit 0")
-            img1 = generate_bloch_image(vec1, label=f"{step_name} — Qubit 1")
-
-            bloch_images.append((step_name, img0, img1))
-
-        # Animate each step
-        for step_name, img0_path, img1_path in bloch_images:
-            title = Text(step_name, font_size=36).to_edge(UP)
-
-            q0_img = ImageMobject(img0_path).scale(0.4).to_edge(LEFT).shift(DOWN * 0.5)
-            q1_img = ImageMobject(img1_path).scale(0.4).to_edge(RIGHT).shift(DOWN * 0.5)
-
-            q0_label = Text("Qubit 0", font_size=24).next_to(q0_img, DOWN)
-            q1_label = Text("Qubit 1", font_size=24).next_to(q1_img, DOWN)
-
-            group = Group(q0_img, q1_img, q0_label, q1_label)
-
-            self.play(Write(title))
-            self.wait(0.5)
-            self.play(FadeIn(group, shift=UP), run_time=1.5)
-            self.wait(2)
-            self.play(FadeOut(title), FadeOut(group))
-
-        self.wait(1)
+        self.show_step(1, vec_q0=[0, 0, 1], vec_q1=[0, 0, 1])
+        self.show_step(2, vec_q0=[1, 0, 0], vec_q1=[0, 0, 1])
+        self.show_step(3, vec_q0=[1, 0, 0], vec_q1=[1, 0, 0])

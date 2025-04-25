@@ -1,37 +1,29 @@
 from manim import *
+from pathlib import Path
 
-class QuantumRepsMultiView(ThreeDScene):
+class QuantumRepsMultiView(Scene):
+    def get_bloch_view(self, step_num):
+        # === INSERT YOUR BLOCH IMAGE FILENAMES HERE ===
+        filenames = {
+            1: ("images/step1_0.png", "images/step1_1.png"),
+            2: ("images/step2_0.png", "images/step2_1.png"),
+            3: ("images/step3_0.png", "images/step3_1.png"),
+        }
 
-    def get_bloch_sphere(self, state_vector_endpoint=[0, 0, 1], sphere_color=YELLOW):
-        bloch_sphere = Sphere(radius=1).set_fill(opacity=0.3).set_stroke(WHITE, 0.6)
+        q0_path, q1_path = filenames.get(step_num, (None, None))
+        if not (q0_path and q1_path):
+            raise ValueError(f"No Bloch sphere images found for step {step_num}.")
 
-        x_axis = Arrow3D(np.array([-1.5, 0, 0]), np.array([1.5, 0, 0]), color=WHITE)
-        y_axis = Arrow3D(np.array([0, -1.5, 0]), np.array([0, 1.5, 0]), color=WHITE)
-        z_axis = Arrow3D(np.array([0, 0, -1.5]), np.array([0, 0, 1.5]), color=WHITE)
+        if not (Path(q0_path).exists() and Path(q1_path).exists()):
+            raise FileNotFoundError(f"Image files missing: {q0_path}, {q1_path}")
 
-        state_vector_arrow = Arrow3D(np.array([0, 0, 0]), np.array(state_vector_endpoint, dtype=float), color=sphere_color)
+        img_q0 = ImageMobject(q0_path).scale(0.4).shift(LEFT * 1.5)
+        img_q1 = ImageMobject(q1_path).scale(0.4).shift(RIGHT * 1.5)
 
-        def state_label(tex_str, pos):
-            return Tex(tex_str, color=WHITE).move_to(pos).rotate(PI / 2, axis=RIGHT).rotate(PI - PI / 6, axis=OUT)
+        label_q0 = Text("Qubit 0", font_size=24).next_to(img_q0, DOWN)
+        label_q1 = Text("Qubit 1", font_size=24).next_to(img_q1, DOWN)
 
-        ket_0 = state_label(r"$\left|0\right\rangle$", z_axis.get_end() + 0.3 * OUT)
-        ket_1 = state_label(r"$\left|1\right\rangle$", z_axis.get_start() + 0.3 * IN)
-        ket_plus = state_label(r"$\left|+\right\rangle$", x_axis.get_end() + 0.3 * RIGHT)
-        ket_minus = state_label(r"$\left|-\right\rangle$", x_axis.get_start() + 0.3 * LEFT)
-        ket_plus_i = state_label(r"$\left|+i\right\rangle$", y_axis.get_end() + 0.3 * UP)
-        ket_minus_i = state_label(r"$\left|-i\right\rangle$", y_axis.get_start() + 0.3 * DOWN)
-
-        axes_group = VGroup(x_axis, y_axis, z_axis)
-        state_labels = VGroup(ket_0, ket_1, ket_plus, ket_minus, ket_plus_i, ket_minus_i)
-        bloch_group = VGroup(bloch_sphere, axes_group, state_labels, state_vector_arrow).scale(0.6)
-
-        return bloch_group
-
-    def get_bloch_view(self, vec_q0, vec_q1):
-        q0 = self.get_bloch_sphere(vec_q0).shift(LEFT * 1.5)
-        q1 = self.get_bloch_sphere(vec_q1).shift(RIGHT * 1.5)
-        return VGroup(q0, q1)
-
+        return Group(img_q0, img_q1, label_q0, label_q1)
 
     def get_vector_view(self, step_num):
         tex_template = TexTemplate()
@@ -54,7 +46,6 @@ class QuantumRepsMultiView(ThreeDScene):
                 r"$\frac{1}{\sqrt{2}}(\ket{00} + \ket{11}) = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix}$",
                 tex_template=tex_template
             )
-
 
     def get_circuit_view(self, step_num):
         x_start = 0
@@ -83,7 +74,7 @@ class QuantumRepsMultiView(ThreeDScene):
 
             elements += [line_q0_1a, h_group, line_q0_1b, line_q1_1]
 
-        if step_num == 2 or step_num == 3:
+        if step_num in [2, 3]:
             t2_mid = x_start + width + width / 2
             line_q0_2a = Line([x_start + width, y_q0, 0], [t2_mid - gate_gap, y_q0, 0])
             line_q0_2b = Line([t2_mid + gate_gap, y_q0, 0], [x_end, y_q0, 0])
@@ -100,16 +91,17 @@ class QuantumRepsMultiView(ThreeDScene):
         return VGroup(*elements).scale(0.9)
 
     def show_step(self, step_num, vec_q0, vec_q1):
-        circuit = self.get_circuit_view(step_num).move_to(LEFT * 5)
-        vector = self.get_vector_view(step_num).move_to(ORIGIN)
-        bloch = self.get_bloch_view(vec_q0, vec_q1).move_to(RIGHT * 5)
+        # Scale down each component
+        circuit = self.get_circuit_view(step_num).scale(0.8).to_edge(LEFT).shift(UP * 0.5)
+        vector = self.get_vector_view(step_num).scale(0.9).move_to(DOWN * 1.5)
+        bloch = self.get_bloch_view(step_num).scale(0.6).to_edge(RIGHT).shift(UP * 0.5)
 
         self.play(FadeIn(circuit), FadeIn(vector), FadeIn(bloch))
         self.wait(4)
         self.play(FadeOut(circuit), FadeOut(vector), FadeOut(bloch))
 
+
     def construct(self):
-        self.set_camera_orientation(phi=70 * DEGREES, theta=30 * DEGREES)
         title = Text("EPR Pair Generation – Multi-View", font_size=40)
         self.play(FadeIn(title))
         self.wait(2)
