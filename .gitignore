@@ -1,6 +1,8 @@
 .DS_Store
 venv
+venv310
 /epr_example/media
+/epr_example/qiskit_bloch/media
 /old/media
 
 __pycache__/

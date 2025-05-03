@@ -4,6 +4,8 @@ from circuit import Circuit
 from entangled_qubits import TwoEntangledQubits
 from vector import EPRPairMatrixWalkthrough
 
+# THIS IS THE CODE WE NEED TO EDIT 5/2/25
+
 class QuantumReps(ThreeDScene):
     def get_bloch_sphere(self, sphere_color=BLUE, state_vector_endpoint=[0, 0, 1.5]):
         state_vector_endpoint = np.array(state_vector_endpoint, dtype=float)
