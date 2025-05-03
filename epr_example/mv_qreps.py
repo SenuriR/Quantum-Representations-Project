@@ -1,7 +1,7 @@
 from manim import *
 from pathlib import Path
 
-class QuantumRepsMultiView(ThreeDScene):
+class QuantumRepsMultiView(Scene):
     def get_bloch_view(self, step_num):
         # === INSERT YOUR BLOCH IMAGE FILENAMES HERE ===
         filenames = {
@@ -23,7 +23,7 @@ class QuantumRepsMultiView(ThreeDScene):
         label_q0 = Text("Qubit 0", font_size=24).next_to(img_q0, DOWN)
         label_q1 = Text("Qubit 1", font_size=24).next_to(img_q1, DOWN)
 
-        return VGroup(img_q0, img_q1, label_q0, label_q1)
+        return Group(img_q0, img_q1, label_q0, label_q1)
 
     def get_vector_view(self, step_num):
         tex_template = TexTemplate()
@@ -91,16 +91,17 @@ class QuantumRepsMultiView(ThreeDScene):
         return VGroup(*elements).scale(0.9)
 
     def show_step(self, step_num, vec_q0, vec_q1):
-        circuit = self.get_circuit_view(step_num).move_to(LEFT * 5)
-        vector = self.get_vector_view(step_num).move_to(ORIGIN)
-        bloch = self.get_bloch_view(step_num).move_to(RIGHT * 5)
+        # Scale down each component
+        circuit = self.get_circuit_view(step_num).scale(0.8).to_edge(LEFT).shift(UP * 0.5)
+        vector = self.get_vector_view(step_num).scale(0.9).move_to(DOWN * 1.5)
+        bloch = self.get_bloch_view(step_num).scale(0.6).to_edge(RIGHT).shift(UP * 0.5)
 
         self.play(FadeIn(circuit), FadeIn(vector), FadeIn(bloch))
         self.wait(4)
         self.play(FadeOut(circuit), FadeOut(vector), FadeOut(bloch))
 
+
     def construct(self):
-        self.set_camera_orientation(phi=70 * DEGREES, theta=30 * DEGREES)
         title = Text("EPR Pair Generation – Multi-View", font_size=40)
         self.play(FadeIn(title))
         self.wait(2)
