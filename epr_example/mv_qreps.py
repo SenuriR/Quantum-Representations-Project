@@ -1,6 +1,7 @@
 from manim import *
 from pathlib import Path
 
+# this is the main driver
 class QuantumRepsMultiView(Scene):
     def get_bloch_view(self, step_num):
         # === INSERT YOUR BLOCH IMAGE FILENAMES HERE ===
