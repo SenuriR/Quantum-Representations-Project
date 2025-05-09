@@ -1,6 +1,8 @@
 from manim import *
 from pathlib import Path
 
+# can definitely make this portable-- not just hard coded epr pair
+
 # this is the main driver
 class QuantumRepsMultiView(Scene):
     def get_bloch_view(self, step_num):
