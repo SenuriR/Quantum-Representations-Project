@@ -2,6 +2,7 @@ from manim import *
 from pathlib import Path
 
 # can definitely make this portable-- not just hard coded epr pair
+# TODO 5/12: make circuit show time steps
 
 # this is the main driver
 class QuantumRepsMultiView(Scene):

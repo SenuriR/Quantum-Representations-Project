@@ -1,5 +1,7 @@
 from manim import *
 
+# TODO 5/12: need to fix CNOT gate-- there's too much space on the right hand side of the gates
+
 class CleanGrowingEPR(Scene):
     def construct(self):
         # Setup parameters
