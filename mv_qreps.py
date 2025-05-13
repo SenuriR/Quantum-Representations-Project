@@ -93,16 +93,33 @@ class QuantumRepsMultiView(Scene):
             elements += [line_q0_2a, cx_group, line_q0_2b, line_q1_2a, line_q1_2b]
 
         return VGroup(*elements).scale(0.9)
-
+    
     def show_step(self, step_num, vec_q0, vec_q1):
-        # Scale down each component
-        circuit = self.get_circuit_view(step_num).scale(0.8).to_edge(LEFT).shift(UP * 0.5)
-        vector = self.get_vector_view(step_num).scale(0.9).move_to(DOWN * 1.5)
-        bloch = self.get_bloch_view(step_num).scale(0.6).to_edge(RIGHT).shift(UP * 0.5)
+        # Time step label in top left
+        time_label = Text(f"Time step t = {step_num}", font_size=28).to_corner(UL)
 
-        self.play(FadeIn(circuit), FadeIn(vector), FadeIn(bloch))
+        self.play(FadeIn(time_label))
+
+        # === CIRCUIT VIEW ===
+        circuit = self.get_circuit_view(step_num).scale(0.9).move_to(ORIGIN)
+        self.play(FadeIn(circuit))
+        self.wait(3)
+        self.play(FadeOut(circuit))
+
+        # === VECTOR VIEW ===
+        vector = self.get_vector_view(step_num).scale(1.0).move_to(ORIGIN)
+        self.play(FadeIn(vector))
+        self.wait(3)
+        self.play(FadeOut(vector))
+
+        # === BLOCH VIEW ===
+        bloch = self.get_bloch_view(step_num).scale(0.6).move_to(ORIGIN)
+        self.play(FadeIn(bloch))
         self.wait(4)
-        self.play(FadeOut(circuit), FadeOut(vector), FadeOut(bloch))
+        self.play(FadeOut(bloch))
+
+        # Fade out the time label after all three views are shown
+        self.play(FadeOut(time_label))
 
 
     def construct(self):
