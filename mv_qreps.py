@@ -1,8 +1,7 @@
 from manim import *
 from pathlib import Path
 
-# can definitely make this portable-- not just hard coded epr pair
-# TODO 5/12: make circuit show time steps
+# TODO 5/14: fix PSI notation
 
 # this is the main driver
 class QuantumRepsMultiView(Scene):
@@ -17,17 +16,23 @@ class QuantumRepsMultiView(Scene):
         q0_path, q1_path = filenames.get(step_num, (None, None))
         if not (q0_path and q1_path):
             raise ValueError(f"No Bloch sphere images found for step {step_num}.")
-
         if not (Path(q0_path).exists() and Path(q1_path).exists()):
             raise FileNotFoundError(f"Image files missing: {q0_path}, {q1_path}")
 
-        img_q0 = ImageMobject(q0_path).scale(0.4).shift(LEFT * 1.5)
-        img_q1 = ImageMobject(q1_path).scale(0.4).shift(RIGHT * 1.5)
+        img_q0 = ImageMobject(q0_path).scale(0.4)
+        img_q1 = ImageMobject(q1_path).scale(0.4)
 
         label_q0 = Text("Qubit 0", font_size=24).next_to(img_q0, DOWN)
         label_q1 = Text("Qubit 1", font_size=24).next_to(img_q1, DOWN)
 
-        return Group(img_q0, img_q1, label_q0, label_q1)
+        # Group each image with its label
+        q0_group = Group(img_q0, label_q0)
+        q1_group = Group(img_q1, label_q1)
+
+
+        # Arrange with spacing
+        return Group(q0_group, q1_group).arrange(RIGHT, buff=1.5)
+
 
     def get_vector_view(self, step_num):
         tex_template = TexTemplate()
@@ -80,17 +85,40 @@ class QuantumRepsMultiView(Scene):
 
         if step_num in [2, 3]:
             t2_mid = x_start + width + width / 2
-            line_q0_2a = Line([x_start + width, y_q0, 0], [t2_mid - gate_gap, y_q0, 0])
-            line_q0_2b = Line([t2_mid + gate_gap, y_q0, 0], [x_end, y_q0, 0])
-            line_q1_2a = Line([x_start + width, y_q1, 0], [t2_mid - gate_gap, y_q1, 0])
-            line_q1_2b = Line([t2_mid + gate_gap, y_q1, 0], [x_end, y_q1, 0])
 
+            cnot_gate_gap = 0.2  # tighter CNOT spacing
+
+            # Use cnot_gate_gap in place of gate_gap below:
+            line_q0_2a = Line([x_start + width, y_q0, 0], [t2_mid - cnot_gate_gap, y_q0, 0])
+            line_q0_2b = Line([t2_mid + cnot_gate_gap, y_q0, 0], [x_end, y_q0, 0])
+            line_q1_2a = Line([x_start + width, y_q1, 0], [t2_mid - cnot_gate_gap, y_q1, 0])
+            line_q1_2b = Line([t2_mid + cnot_gate_gap, y_q1, 0], [x_end, y_q1, 0])
+
+
+            # Control dot
             ctrl_dot = Dot(radius=0.07).move_to([t2_mid, y_q0, 0])
-            tgt_circle = Circle(radius=0.15).move_to([t2_mid, y_q1, 0])
-            vert_line = Line(ctrl_dot.get_center(), tgt_circle.get_center())
-            cx_group = VGroup(ctrl_dot, tgt_circle, vert_line)
+
+            # Target: circle with cross ("⊕")
+            tgt_circle = Circle(radius=0.2).move_to([t2_mid, y_q1, 0])
+            tgt_cross_v = Line(
+                tgt_circle.get_center() + UP * 0.15,
+                tgt_circle.get_center() + DOWN * 0.15,
+                stroke_width=2
+            )
+            tgt_cross_h = Line(
+                tgt_circle.get_center() + LEFT * 0.15,
+                tgt_circle.get_center() + RIGHT * 0.15,
+                stroke_width=2
+            )
+            tgt_symbol = VGroup(tgt_circle, tgt_cross_v, tgt_cross_h)
+
+            # Vertical line connecting control and target
+            vert_line = Line(ctrl_dot.get_center(), tgt_circle.get_center(), stroke_width=2)
+
+            cx_group = VGroup(ctrl_dot, vert_line, tgt_symbol)
 
             elements += [line_q0_2a, cx_group, line_q0_2b, line_q1_2a, line_q1_2b]
+
 
         return VGroup(*elements).scale(0.9)
     
